@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GreedySearch : MonoBehaviour {
+public class AStar : MonoBehaviour {
 
 	private Vector3[,] map ;
 	BFSMesh BFSCredentials; 
 
+	//Visited list to prevent loops
+	bool[,] visitedList = new bool[200,200];
+
 	// Use this for initialization
 	void Start () {
-		
+
 		BFSCredentials = GameObject.FindObjectOfType<BFSMesh> ();
 
 		//Get the matrix created by bfs
@@ -40,51 +43,90 @@ public class GreedySearch : MonoBehaviour {
 	/// <returns>The greedy best first search path.</returns>
 	/// <param name="currentPosition">Current position.</param>
 	/// <param name="targetPosition">Target position.</param>
-	public Queue GetGreedyBestFirstSearchPath(Vector3 currentPosition , Vector3 targetPosition){
+	public Queue GetAStarSearchPath(Vector3 currentPosition , Vector3 targetPosition){
 
 		//Round down the current position
 		currentPosition = new Vector3 ((float)((int)currentPosition.x), (float)((int)currentPosition.y), (float)((int)currentPosition.z));
 
+
 		//Result List
 		Queue ResultingPath = new Queue ();
 
-		//Visited list to prevent loops
-		bool[,] visitedList = new bool[200,200];
+
+		//Cost vector 
+		int[,] costSoFar = new int[200,200];
+
+		int current = 0, next = 1;
+
+		int startZ, startX;
+		ConvertToIndex (out startZ, out startX, currentPosition);
+
+		//Set Start node cost as 0
+		costSoFar[startZ,startX] = 0;
 		//Frontier queue
-		Queue frontier = new Queue ();
-	
-		//Add starting node to queue
-		frontier.Enqueue (currentPosition);
-	
+		PriorityQueue frontier = new PriorityQueue ();
+		//Create node for start point
+		PriorityQueue.LocationNode currentNode = new PriorityQueue.LocationNode ();
+		//Give its credentials
+		currentNode.location = currentPosition;
+		currentNode.priority = 0f;
+		//Add it to queue
+		frontier.Enqueue (currentNode);
+
+
+
 
 		while (!frontier.isEmpty ()) {
 
 			Vector3 currentPlace = frontier.Dequeue ();
+			
 
-
-			if (currentPlace.Equals (targetPosition)) {
+			if (currentPlace.Equals (targetPosition)) {//Goal Achieved
 				
 				ResultingPath.Enqueue (currentPlace);
+
+			
 				return ResultingPath;
+
 			} else {
 				
 
+				GetValidNeighbors (currentPlace).queue.ForEach (delegate(Vector3 obj) {
 
-				int x, z;
-				ConvertToIndex (out z, out x, GetShortestNeighbor (currentPlace, targetPosition));
+					ConvertToIndex (out startZ,out startX,currentPlace);
+
+					int neighborZ,neighborX;
+					ConvertToIndex (out neighborZ,out neighborX,obj);
+
+					int newCost = costSoFar[startZ,startX] + 1; //As all the costs are equal, add one to current cost
 
 
-				if (!visitedList [z, x]) {
-					frontier.Enqueue (map[z,x]);
-					visitedList [z, x] = true;
-					ResultingPath.Enqueue (map[z,x]);
+					if(costSoFar[neighborZ,neighborX] == 0 || newCost  < costSoFar[neighborZ,neighborX]){
+						
+						costSoFar[neighborZ,neighborX] = newCost;
 
-				}
+						PriorityQueue.LocationNode neighborNode = new PriorityQueue.LocationNode();
+						neighborNode.location = obj;
+						neighborNode.priority = newCost + HeuristicFunction (obj,targetPosition);
+
+						frontier.Enqueue (neighborNode);
+
+						ResultingPath.Enqueue (currentPlace);
+
+					}
+				
+				});
+
+				current++;
+				next++;
 
 			}
 
 
 		}
+
+
+
 
 		return ResultingPath;
 
@@ -95,28 +137,28 @@ public class GreedySearch : MonoBehaviour {
 	/// </summary>
 	/// <returns>The valid neighbors.</returns>
 	/// <param name="currentPosition">Current position.</param>
-	private Vector3 GetShortestNeighbor(Vector3 currentPosition,Vector3 targetPosition){
-		PriorityQueue result = new PriorityQueue ();
+	private Queue GetValidNeighbors(Vector3 currentPosition){
+
+
+		Queue result = new Queue ();
 		int x, z;
 		ConvertToIndex (out z,out x,currentPosition);
 
 
 		for(int i = -2; i < 3 ;i++){
 			for(int j = -2 ; j < 3 ; j++){
-				
-				if((x+j) < 98 && (x+j) > 0 && (z+ i) < 49 && (z+i) > 0){
-					if(!map [(z + i), (x + j)].Equals (Vector3.zero)){
-						PriorityQueue.LocationNode tempNode = new PriorityQueue.LocationNode ();
-						tempNode.location = map [z + i, x + j];
-						tempNode.priority= HeuristicFunction (map [z + i, x + j], targetPosition);
-						result.Enqueue (tempNode);
+
+				if((x+j) < 98 && (x+j) > 0 && (z+ i) < 49 && (z+i) > 0){//Within the map boundaries
+					if(!map [(z + i), (x + j)].Equals (Vector3.zero) && !visitedList[(z+i),(x+j)]){ //If the node is valid
+						result.Enqueue (map [(z + i), (x + j)]);
+						visitedList [(z + i), (x + j)] = true;
 					}
 				}
 			}
 		}
 
 
-		return result.Dequeue ();
+		return result;
 	}
 
 	/// <summary>

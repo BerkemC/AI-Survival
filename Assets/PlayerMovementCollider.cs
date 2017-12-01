@@ -7,7 +7,19 @@ public class PlayerMovementCollider : MonoBehaviour {
 	void OnTriggerEnter(Collider col){
 
 		if(col.tag == "Player"){
-			print ("hit");
+			print ("here"+ "  "+transform.position );
+
+			GameObject.Find ("Player").GetComponent <CompleteProject.PlayerMovement> ().norm = Vector3.zero;
+			GameObject.Find ("Player").GetComponent <CompleteProject.PlayerMovement> ().ChangeTargetNode ();
+
+		}
+	}
+
+	void OnTriggerStay(Collider col){
+
+		if(col.tag == "Player"){
+			print ("here"+ "  "+transform.position );
+
 			GameObject.Find ("Player").GetComponent <CompleteProject.PlayerMovement> ().norm = Vector3.zero;
 			GameObject.Find ("Player").GetComponent <CompleteProject.PlayerMovement> ().ChangeTargetNode ();
 

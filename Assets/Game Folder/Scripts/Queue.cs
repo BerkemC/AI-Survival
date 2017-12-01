@@ -13,7 +13,6 @@ public class Queue : MonoBehaviour {
 	}
 
 	public void Enqueue(Vector3 node){
-
 		queue.Add (node);
 		tail++;
 	}

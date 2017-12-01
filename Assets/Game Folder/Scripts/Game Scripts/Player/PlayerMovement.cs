@@ -16,7 +16,7 @@ namespace CompleteProject
 		Queue path = new Queue();
 		Vector3 nextLocation;
 		public Vector3 norm;
-		float timer = 1f;
+		float timer = 0.5f;
 		public BoxCollider col;
         void Awake ()
         {
@@ -30,7 +30,9 @@ namespace CompleteProject
 		void Start(){
 
 			GreedySearch gs = GetComponent<GreedySearch> ();
-			path = gs.GetGreedyBestFirstSearchPath (transform.position, new Vector3 (2f, 1f, 5f));
+			AStar aS = GetComponent <AStar> ();
+
+			path = aS.GetAStarSearchPath (transform.position, new Vector3 (-16f, 1f, 2f));
 			nextLocation = path.Dequeue ();
 			norm = new Vector3(-transform.position.x+nextLocation.z,0f,-transform.position.z+nextLocation.z).normalized;
 			col.transform.position = nextLocation;
@@ -38,26 +40,27 @@ namespace CompleteProject
 
 		public void ChangeTargetNode ()
 		{
+			print ("target change");
 			if (!path.isEmpty ()) {
-				//Vector3 myPosition = new Vector3 ((float)((int)transform.position.x), (float)((int)transform.position.y), (float)((int)transform.position.z));
-				//if (nextLocation.Equals (myPosition)) {
-					nextLocation = path.Dequeue ();
-
+				
+				nextLocation = path.Dequeue ();
+				col.transform.position = nextLocation;
+				print (nextLocation);
 				if (nextLocation.x > transform.position.x)
 					norm.x = 1f;
-				else if (nextLocation.x.Equals (transform.position.x))
+				else if (nextLocation.x -.5f < transform.position.x  && nextLocation.x +.5f > transform.position.x  )
 					norm.x = 0f;
 				else
 					norm.x = -1f;
 
 				if (nextLocation.z > transform.position.z)
 					norm.z = 1;
-				else if (nextLocation.z.Equals (transform.position.z))
+				else if (nextLocation.z -.25f < transform.position.z  && nextLocation.z +.25f > transform.position.z )
 					norm.z = 0f;
 				else
 					norm.z = -1;
 
-					col.transform.position = nextLocation;
+
 
 				//}
 			}else{
@@ -111,8 +114,8 @@ namespace CompleteProject
 
             // Animate the player.
 			Animating (norm.x, norm.z);
-			timer -= 1f * Time.deltaTime;
-			/*if(timer < 0f){
+			/*timer -= 1f * Time.deltaTime;
+			if(timer < 0f){
 				timer = 1f;
 				ChangeTargetNode ();
 			}*/
