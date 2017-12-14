@@ -13,39 +13,62 @@ namespace CompleteProject
         Animator anim;                      // Reference to the animator component.
         Rigidbody playerRigidbody;          // Reference to the player's rigidbody.
 
+
 		Queue path = new Queue();
 		Vector3 nextLocation;
 		public Vector3 norm;
-		float timer = 0.5f;
+
 		public BoxCollider col;
-        void Awake ()
+
+		private AStar aS;
+		private GreedySearch gs;
+		private PlayerShooting ps;
+
+		private Vector3 destination;
+
+		//Setters and Getters
+		public Vector3 Destination {
+			get {
+				return destination;
+			}
+			set {
+				destination = value;
+			}
+		}
+		//-----------------------------//
+
+
+
+		void Awake ()
         {
         // Set up references.
             anim = GetComponent <Animator> ();
             playerRigidbody = GetComponent <Rigidbody> ();
 
+			//AStar script reference
+			gs = GetComponent <GreedySearch> ();
 
-
+			ps = transform.Find ("GunBarrelEnd").GetComponent<PlayerShooting> ();
         }
 		void Start(){
 
-			GreedySearch gs = GetComponent<GreedySearch> ();
-			AStar aS = GetComponent <AStar> ();
 
-			path = aS.GetAStarSearchPath (transform.position, new Vector3 (-16f, 1f, 2f));
-			nextLocation = path.Dequeue ();
-			norm = new Vector3(-transform.position.x+nextLocation.z,0f,-transform.position.z+nextLocation.z).normalized;
-			col.transform.position = nextLocation;
+		}
+
+		void StartMovement ()
+		{
+			path = gs.GetGreedyBestFirstSearchPath (transform.position, destination);
+			ChangeTargetNode ();
 		}
 
 		public void ChangeTargetNode ()
 		{
-			print ("target change");
+			
 			if (!path.isEmpty ()) {
 				
 				nextLocation = path.Dequeue ();
 				col.transform.position = nextLocation;
-				print (nextLocation);
+
 				if (nextLocation.x > transform.position.x)
 					norm.x = 1f;
 				else if (nextLocation.x -.5f < transform.position.x  && nextLocation.x +.5f > transform.position.x  )
@@ -59,11 +82,30 @@ namespace CompleteProject
 					norm.z = 0f;
 				else
 					norm.z = -1;
-
-
-
-				//}
 			}else{
+				norm = Vector3.zero;
+			}
+		}
+
+		void CalculateNorm ()
+		{
+			if (!path.isEmpty ()) {
+				if (nextLocation.x > transform.position.x)
+					norm.x = 1f;
+				else
+					if (nextLocation.x - .5f < transform.position.x && nextLocation.x + .5f > transform.position.x)
+						norm.x = 0f;
+					else
+						norm.x = -1f;
+				if (nextLocation.z > transform.position.z)
+					norm.z = 1;
+				else
+					if (nextLocation.z - .25f < transform.position.z && nextLocation.z + .25f > transform.position.z)
+						norm.z = 0f;
+					else
+						norm.z = -1;
+			}
+			else {
 				norm = Vector3.zero;
 			}
 		}
@@ -71,11 +113,10 @@ namespace CompleteProject
         void FixedUpdate ()
         {
 			
+			path = gs.GetGreedyBestFirstSearchPath (transform.position, destination);
+			ChangeTargetNode ();
+           
 		
-            // Store the input axes.
-			float h = Input.GetAxisRaw("Horizontal");
-            float v = Input.GetAxisRaw("Vertical");
-
 
 			/*while(!path.isEmpty ()){
 				Instantiate (GameObject.FindObjectOfType<BFSMesh> ().spawn,path.Dequeue (),Quaternion.identity);
@@ -83,45 +124,16 @@ namespace CompleteProject
 
 
 
-			if(!path.isEmpty ()){
-				if (nextLocation.x > transform.position.x)
-					norm.x = 1f;
-				else if (nextLocation.x -.5f < transform.position.x  && nextLocation.x +.5f > transform.position.x  )
-					norm.x = 0f;
-				else
-					norm.x = -1f;
-
-				if (nextLocation.z > transform.position.z)
-					norm.z = 1;
-				else if (nextLocation.z -.25f < transform.position.z  && nextLocation.z +.25f > transform.position.z )
-					norm.z = 0f;
-				else
-					norm.z = -1;
-			}else {
-				norm = Vector3.zero;
-			}
-
-			
-
+			CalculateNorm ();
 
 			Move (norm.x,norm.z);
 
-            // Move the player around the scene.
-           
-
+            
             // Turn the player to face the mouse cursor.
 			Turning (new Vector3(norm.x,0f,norm.z));
 
             // Animate the player.
 			Animating (norm.x, norm.z);
-			/*timer -= 1f * Time.deltaTime;
-			if(timer < 0f){
-				timer = 1f;
-				ChangeTargetNode ();
-			}*/
-
-
-
 
         }
 
@@ -160,5 +172,11 @@ namespace CompleteProject
             // Tell the animator whether or not the player is walking.
             anim.SetBool ("IsWalking", walking);
         }
+
+
+		public float GetDistanceToTarget()
+		{
+			return Vector3.Distance (transform.position, destination);
+		}
     }
 }

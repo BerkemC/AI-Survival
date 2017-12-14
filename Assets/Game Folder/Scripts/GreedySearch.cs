@@ -44,6 +44,8 @@ public class GreedySearch : MonoBehaviour {
 
 		//Round down the current position
 		currentPosition = new Vector3 ((float)((int)currentPosition.x), (float)((int)currentPosition.y), (float)((int)currentPosition.z));
+		//Round down the target position
+		targetPosition = new Vector3 ((float)((int)targetPosition.x), (float)((int)targetPosition.y), (float)((int)targetPosition.z));
 
 		//Result List
 		Queue ResultingPath = new Queue ();

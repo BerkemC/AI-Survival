@@ -17,10 +17,22 @@ public class PlayerShooting : MonoBehaviour
     Light gunLight;
     float effectsDisplayTime = 0.2f;
 
-
+	private bool shouldFire = false;
 
 	public Text ammoText;
 	public int currentAmmo;
+
+	//Setters and Getters
+	public bool ShouldFire {
+		get {
+			return shouldFire;
+		}
+		set {
+			shouldFire = value;
+		}
+	}
+
+	//-------------------------//
 
     void Awake ()
     {
@@ -36,7 +48,7 @@ public class PlayerShooting : MonoBehaviour
     {
         timer += Time.deltaTime;
 
-		if(Input.GetButton ("Fire1") && timer >= timeBetweenBullets && Time.timeScale != 0 && currentAmmo > 0)
+		if(timer >= timeBetweenBullets && Time.timeScale != 0 && currentAmmo > 0 && shouldFire)
         {
             Shoot ();
         }
