@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1992121579099848}
+  m_IsPrefabParent: 1
+--- !u!1 &1992121579099848
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4751882493327648}
+  - component: {fileID: 114917638206729712}
+  m_Layer: 0
+  m_Name: Spawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4751882493327648
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1992121579099848}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.027863529, y: 3.3811617, z: 5.4747825}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114917638206729712
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1992121579099848}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fd1fb2c6a51ba9418a7840c5d188c06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isAtStart: 1
+  isDelayed: 0
+  delay: 5
+  parent: {fileID: 0}
+  spawnAtParentLocation: 0
+  spawnAtObjectLocation: {fileID: 0}
+  spawnLocationVector: {x: 0, y: 0, z: 0}
+  isRandomized: 1
+  xOffset: {x: 0, y: 20}
+  yOffset: {x: 2, y: 10}
+  zOffset: {x: 2, y: 5}
+  isSingleObject: 0
+  isMultipleObject: 1
+  spawnObject: {fileID: 0}
+  spawnObjectList:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  repetitionForSingleObject: 0
+  repetitionForMultiObject: 10
+  singleObjectFrequency: 0
+  multiObjectFrequency: 0.722
+  betweenMultiObjectsFrequency: 0.13
+  isDeleteAfterCompletion: 0

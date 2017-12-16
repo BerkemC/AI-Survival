@@ -21,6 +21,8 @@ public class PlayerShooting : MonoBehaviour
 
 	public Text ammoText;
 	public int currentAmmo;
+	public GameObject target;
+	public float distanceToTarget;
 
 	//Setters and Getters
 	public bool ShouldFire {
@@ -48,7 +50,7 @@ public class PlayerShooting : MonoBehaviour
     {
         timer += Time.deltaTime;
 
-		if(timer >= timeBetweenBullets && Time.timeScale != 0 && currentAmmo > 0 && shouldFire)
+		if(timer >= timeBetweenBullets && Time.timeScale != 0 && currentAmmo > 0 && target!=null &&Vector3.Distance (transform.position,target.transform.position) <= distanceToTarget)
         {
             Shoot ();
         }
@@ -86,7 +88,7 @@ public class PlayerShooting : MonoBehaviour
 
         if(Physics.Raycast (shootRay, out shootHit, range, shootableMask))
         {
-            EnemyHealth enemyHealth = shootHit.collider.GetComponent <EnemyHealth> ();
+			CompleteProject.EnemyHealth enemyHealth = shootHit.collider.GetComponent <CompleteProject.EnemyHealth> ();
             if(enemyHealth != null)
             {
                 enemyHealth.TakeDamage (damagePerShot, shootHit.point);

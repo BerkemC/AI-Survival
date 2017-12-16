@@ -14,7 +14,7 @@ namespace CompleteProject
         Rigidbody playerRigidbody;          // Reference to the player's rigidbody.
 
 
-		Queue path = new Queue();
+		private Queue path = new Queue();
 		Vector3 nextLocation;
 		public Vector3 norm;
 
@@ -35,6 +35,16 @@ namespace CompleteProject
 				destination = value;
 			}
 		}
+
+		public Queue Path {
+			get {
+				return path;
+			}
+			set {
+				path = value;
+			}
+		}
+
 		//-----------------------------//
 
 
@@ -55,7 +65,7 @@ namespace CompleteProject
 
 		}
 
-		void StartMovement ()
+		public void StartMovement ()
 		{
 			path = gs.GetGreedyBestFirstSearchPath (transform.position, destination);
 			ChangeTargetNode ();
@@ -84,6 +94,7 @@ namespace CompleteProject
 					norm.z = -1;
 			}else{
 				norm = Vector3.zero;
+				//GameObject.FindObjectOfType<PlayerAction> ().IsEscaping = false;
 			}
 		}
 
@@ -107,17 +118,14 @@ namespace CompleteProject
 			}
 			else {
 				norm = Vector3.zero;
+				//GameObject.FindObjectOfType<PlayerAction> ().IsEscaping = false;
 			}
 		}
 	
         void FixedUpdate ()
         {
 			
-			path = gs.GetGreedyBestFirstSearchPath (transform.position, destination);
-			ChangeTargetNode ();
-           
 		
-
 			/*while(!path.isEmpty ()){
 				Instantiate (GameObject.FindObjectOfType<BFSMesh> ().spawn,path.Dequeue (),Quaternion.identity);
 			}*/

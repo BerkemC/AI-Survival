@@ -9,12 +9,13 @@ public class GOAP : MonoBehaviour {
 	private GameObject enemies;
 	private GameObject healthPickups;
 	private GameObject ammoPickups;
+	private PlayerAction pa;
 
-	public float ammoGatheringCoeff;
-	public float healthGatheringCoeff;
-	public float shootToKillCoeff;
-	public float meleeKillCoeff;
-	public float escapeCoeff;
+	public float ammoPriority;
+	public float healthPriority;
+	public float shootPriority;
+	public float meleePriority;
+	public float escapePriority;
 
 
 	public float enemyDistanceLimit;
@@ -33,6 +34,7 @@ public class GOAP : MonoBehaviour {
 		healthPickups = GameObject.Find ("HealthPickups");
 		ammoPickups = GameObject.Find ("AmmoPickups");
 		sequenceList = new List<ActionSequence> ();
+		pa = GameObject.FindObjectOfType<PlayerAction> ();
 
 
 	}
@@ -44,7 +46,12 @@ public class GOAP : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-		CalculateNextBestSequence ();
+
+		if(pa.ShouldCalculateSequence){
+			
+			CalculateNextBestSequence ();
+		}
+
 	}
 
 
@@ -86,6 +93,7 @@ public class GOAP : MonoBehaviour {
 
 		effects.Add (ActionSequence.allEffects.moreHealth);
 		conditions.Add (ActionSequence.allPreconditions.lowHealth);
+		bonusConditions.Add (ActionSequence.allPreconditions.enemyFar);
 
 		ActionSequence gatherHealthSequence = new ActionSequence("Gather Health Sequence",conditions,effects,bonusConditions);
 		sequenceList.Add (gatherHealthSequence);
@@ -155,44 +163,107 @@ public class GOAP : MonoBehaviour {
 
 	private void CalculateNextBestSequence(){
 
-		ActionSequence.allPreconditions playerHealth = isHealthLow ();
-		ActionSequence.allPreconditions playerAmmo = isAmmoLow();
-		ActionSequence.allPreconditions enemyCloseness = isEnemyClose ();
+
+		if(enemies.transform.childCount == 0 && player.GetComponent<PlayerHealth>().currentHealth < 100){
+			
+			pa.ExecuteSequence (sequenceList.Find (x=>x.sequenceName.Equals ("Gather Health Sequence")));
+			SequenceGoapText.text = "Gather Health Sequence";
+
+		}else{
+			ActionSequence.allPreconditions playerHealth = isHealthLow ();
+			ActionSequence.allPreconditions playerAmmo = isAmmoLow();
+			ActionSequence.allPreconditions enemyCloseness = isEnemyClose ();
 
 
-		List<ActionSequence.allPreconditions> currentConditions = new List<ActionSequence.allPreconditions> ();
-		currentConditions.Add (playerHealth);
-		currentConditions.Add (playerAmmo);
-		currentConditions.Add (enemyCloseness);
+			List<ActionSequence.allPreconditions> currentConditions = new List<ActionSequence.allPreconditions> ();
+			currentConditions.Add (playerHealth);
+			currentConditions.Add (playerAmmo);
+			currentConditions.Add (enemyCloseness);
 
-		int highestScore = 0;
-		int index = 0;
-		int i = 0;
-		foreach(var x in sequenceList){
+			List<ActionSequence> suitableSequences = new List<ActionSequence> ();
+			List<int> scores = new List<int> ();
+			int i = 0;
+			foreach(var x in sequenceList){
 
-			int score = 0;
+				int score = 0;
+				int satisfiedConditions = 0;
 
-			foreach(var y in currentConditions){
+				foreach(var y in currentConditions){
 
-				if(x.isConditionValid (y)){
-					score+=2;
-				}else if(x.isConditionValidForBonus (y)){
-					score++;
+					if(x.isConditionValid (y)){
+
+						score+= CalculateConditionScore(y,x);
+						satisfiedConditions++;
+
+					}else if(x.isConditionValidForBonus (y)){
+
+						score += CalculateConditionScore(y,x)/2;
+					}
+
+				}
+
+				if(satisfiedConditions == x.preconditions.Count){
+
+					suitableSequences.Add (x);
+					scores.Add (score);
 				}
 
 			}
 
-			if(score > highestScore){
-				highestScore = score;
-				index = i; 
-			}
-			i++;
+			ActionSequence resultingSequence = suitableSequences [FindHighestScore (scores)];
+
+			SequenceGoapText.text = resultingSequence.sequenceName;
+
+			pa.ExecuteSequence (resultingSequence);
 		}
-		print (index+" "+highestScore);
-		SequenceGoapText.text = sequenceList [index].sequenceName;
 
 
 	}
 
+
+	private int CalculateConditionScore(ActionSequence.allPreconditions condition,ActionSequence currentSequence){
+
+		if(condition.Equals (ActionSequence.allPreconditions.enemyClose)){
+
+			return  (int)meleePriority;
+
+
+		}else if (condition.Equals (ActionSequence.allPreconditions.enemyFar)){
+
+			return (int)shootPriority;
+
+		}else if (condition.Equals (ActionSequence.allPreconditions.lowAmmo)){
+
+			return (int)ammoPriority;
+
+		}else if (condition.Equals (ActionSequence.allPreconditions.highAmmo)){
+
+			return (int)shootPriority;
+
+		}else if (condition.Equals (ActionSequence.allPreconditions.lowHealth)){
+			
+			return (int)healthPriority;
+
+		}else if (condition.Equals (ActionSequence.allPreconditions.highHealth)){
+			return (int)healthPriority;
+		}
+
+
+		return 0;
+
+	}
+
+	private int FindHighestScore(List<int> scores){
+		int index = 0,highestScore = 0;
+
+		for(int i = 0;i<scores.Count;i++){
+			if(scores[i] > highestScore){
+				highestScore = scores [i];
+				index = i;
+			}
+		}
+
+		return index;
+	}
 		
 }

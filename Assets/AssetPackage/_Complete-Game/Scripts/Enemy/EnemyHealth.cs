@@ -34,6 +34,7 @@ namespace CompleteProject
 
         void Update ()
         {
+			
             // If the enemy should be sinking...
             if(isSinking)
             {
@@ -76,6 +77,7 @@ namespace CompleteProject
             // The enemy is dead.
             isDead = true;
 
+			GameObject.FindObjectOfType<PlayerAction> ().ResetForDeadTarget ();
             // Turn the collider into a trigger so shots can pass through it.
             capsuleCollider.isTrigger = true;
 
@@ -97,13 +99,18 @@ namespace CompleteProject
             GetComponent <Rigidbody> ().isKinematic = true;
 
             // The enemy should no sink.
-            isSinking = true;
+            //isSinking = true;
 
             // Increase the score by the enemy's score value.
-            ScoreManager.score += scoreValue;
-
+			if(GameObject.FindObjectOfType<PlayerAction> ().isMelee){
+				ScoreManager.score += 2*scoreValue;
+			}else {
+				ScoreManager.score += scoreValue;
+			}
+            
+			GameObject.FindObjectOfType<PlayerAction> ().ResetForDeadTarget ();
             // After 2 seconds destory the enemy.
-            Destroy (gameObject, 2f);
+            Destroy (gameObject);
         }
     }
 }
