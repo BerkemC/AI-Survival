@@ -94,7 +94,7 @@ namespace CompleteProject
 					norm.z = -1;
 			}else{
 				norm = Vector3.zero;
-				//GameObject.FindObjectOfType<PlayerAction> ().IsEscaping = false;
+
 			}
 		}
 
@@ -118,7 +118,7 @@ namespace CompleteProject
 			}
 			else {
 				norm = Vector3.zero;
-				//GameObject.FindObjectOfType<PlayerAction> ().IsEscaping = false;
+
 			}
 		}
 	
@@ -130,7 +130,9 @@ namespace CompleteProject
 				Instantiate (GameObject.FindObjectOfType<BFSMesh> ().spawn,path.Dequeue (),Quaternion.identity);
 			}*/
 
-
+			if(destination != null && path.isEmpty ()){
+				StartMovement ();
+			}
 
 			CalculateNorm ();
 

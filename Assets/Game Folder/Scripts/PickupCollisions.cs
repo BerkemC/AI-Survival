@@ -9,7 +9,7 @@ public class PickupCollisions : MonoBehaviour {
 		if(col.gameObject.tag.Equals ("Player")){
 
 			if(gameObject.tag.Equals ("Health")){
-
+				
 				GameObject.FindObjectOfType<PlayerHealth> ().currentHealth =100;
 				GameObject.FindObjectOfType<PlayerAction> ().ShouldCalculateSequence = true;
 			}else if(gameObject.tag.Equals ("Ammo")){

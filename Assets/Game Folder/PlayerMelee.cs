@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class PlayerMelee : MonoBehaviour {
 
-	public int MeleeDamage = 50;
-
+	public int MeleeDamage ;
+	//public float meleeIntervals;
 	void OnTriggerEnter(Collider col){
 		
 		if(col.tag.Equals ("Enemy")){
@@ -14,4 +14,13 @@ public class PlayerMelee : MonoBehaviour {
 
 		}
 	}
+
+	/*void OnTriggerStay(Collider col){
+
+		if(col.tag.Equals ("Enemy") && Random.value < meleeIntervals*(Time.deltaTime/4)){
+
+			col.GetComponent <CompleteProject.EnemyHealth>().TakeDamage (MeleeDamage,transform.position);
+
+		}
+	}*/
 }

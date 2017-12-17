@@ -77,6 +77,44 @@ public class PlayerAction : MonoBehaviour {
 			player.transform.LookAt (currentEnemy.transform);
 		}
 
+		if(isEscaping){
+
+			GameObject closestEnemy = FindClosestEnemy ();
+
+			if (closestEnemy && Vector3.Distance (closestEnemy.transform.position, player.transform.position) > GameObject.FindObjectOfType<GOAP> ().enemyDistanceLimit) {
+				GameObject closestAmmo = FindClosestAmmo ();
+				GameObject closestHealth = FindClosestHealth ();
+
+				if (closestAmmo && closestHealth) {
+
+					if (Vector3.Distance (player.transform.position, closestAmmo.transform.position) < Vector3.Distance (player.transform.position, closestAmmo.transform.position)) {
+
+						pm.Destination = closestAmmo.transform.position;
+						pm.StartMovement ();
+
+					} else {
+						pm.Destination = closestHealth.transform.position;
+						pm.StartMovement ();
+					}
+				} else if (closestAmmo && !closestHealth) {
+
+					pm.Destination = closestAmmo.transform.position;
+					pm.StartMovement ();
+				} else if (!closestAmmo && closestHealth) {
+
+					pm.Destination = closestHealth.transform.position;
+					pm.StartMovement ();
+				} else {
+
+					Vector3 randomLoc = new Vector3 (Random.Range (-65f, 15f), 1f, Random.Range (-20f, 15f));
+					pm.Destination = randomLoc;
+					pm.StartMovement ();
+				}
+			}
+
+		}
+
+
 		enemyNumberText.text = "Enemies: " + enemies.transform.childCount.ToString ();
 	}
 
@@ -132,7 +170,7 @@ public class PlayerAction : MonoBehaviour {
 
 				shouldCalculateSequence = true;
 			}
-			shouldCalculateSequence = true;
+
 			isMelee = false;
 			isEscaping = false;
 
@@ -148,7 +186,7 @@ public class PlayerAction : MonoBehaviour {
 				
 				ShouldCalculateSequence = true;
 			}
-			shouldCalculateSequence = true;
+
 			isMelee = false;
 			isEscaping = false;
 		}else if(sequence.sequenceName.Equals ("Escape Sequence")){
@@ -157,7 +195,9 @@ public class PlayerAction : MonoBehaviour {
 				Vector3 randomLocation = new Vector3 (Random.Range (-65f, 15f), 1f, Random.Range (-20f, 15f));
 				pm.Destination = randomLocation;
 				pm.StartMovement ();
+
 			}
+			
 			isMelee = false;
 			isEscaping = true;
 			shouldCalculateSequence = true;

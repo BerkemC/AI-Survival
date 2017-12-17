@@ -164,7 +164,7 @@ public class GOAP : MonoBehaviour {
 	private void CalculateNextBestSequence(){
 
 
-		if(enemies.transform.childCount == 0 && player.GetComponent<PlayerHealth>().currentHealth < 100){
+		if(enemies.transform.childCount == 0 && player.GetComponent<PlayerHealth>().currentHealth < 100 && healthPickups.transform.childCount > 0){
 			
 			pa.ExecuteSequence (sequenceList.Find (x=>x.sequenceName.Equals ("Gather Health Sequence")));
 			SequenceGoapText.text = "Gather Health Sequence";
