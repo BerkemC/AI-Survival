@@ -10,13 +10,10 @@ public class GOAP : MonoBehaviour {
 	private GameObject healthPickups;
 	private GameObject ammoPickups;
 	private PlayerAction pa;
+	private PlayerShooting ps;
+	private PlayerHealth ph;
 
-	public float ammoPriority;
-	public float healthPriority;
-	public float shootPriority;
-	public float meleePriority;
-	public float escapePriority;
-
+	public int startingAmmo;
 
 	public float enemyDistanceLimit;
 	public int lowHealthLimit;
@@ -35,12 +32,12 @@ public class GOAP : MonoBehaviour {
 		ammoPickups = GameObject.Find ("AmmoPickups");
 		sequenceList = new List<ActionSequence> ();
 		pa = GameObject.FindObjectOfType<PlayerAction> ();
-
+		ps = player.transform.Find ("GunBarrelEnd").gameObject.GetComponent<PlayerShooting> ();
+		ph = player.GetComponent<PlayerHealth> ();
 
 	}
 	void Start(){
 		InitializeSequences ();
-		print (sequenceList [0].sequenceName);
 	}
 	
 	// Update is called once per frame
@@ -94,6 +91,7 @@ public class GOAP : MonoBehaviour {
 		effects.Add (ActionSequence.allEffects.moreHealth);
 		conditions.Add (ActionSequence.allPreconditions.lowHealth);
 		bonusConditions.Add (ActionSequence.allPreconditions.enemyFar);
+		bonusConditions.Add (ActionSequence.allPreconditions.noEnemy);
 
 		ActionSequence gatherHealthSequence = new ActionSequence("Gather Health Sequence",conditions,effects,bonusConditions);
 		sequenceList.Add (gatherHealthSequence);
@@ -104,8 +102,12 @@ public class GOAP : MonoBehaviour {
 		conditions = new List<ActionSequence.allPreconditions> ();
 		bonusConditions = new List<ActionSequence.allPreconditions> ();
 
+
 		effects.Add (ActionSequence.allEffects.moreAmmo);
 		conditions.Add (ActionSequence.allPreconditions.lowAmmo);
+		bonusConditions.Add (ActionSequence.allPreconditions.enemyFar);
+		bonusConditions.Add (ActionSequence.allPreconditions.noEnemy);
+
 
 		ActionSequence gatherAmmoSequence = new ActionSequence("Gather Ammo Sequence",conditions,effects,bonusConditions);
 		sequenceList.Add (gatherAmmoSequence);
@@ -130,6 +132,9 @@ public class GOAP : MonoBehaviour {
 	ActionSequence.allPreconditions isEnemyClose(){
 		float closest = 100f;
 
+		if (enemies.transform.childCount == 0)
+			return ActionSequence.allPreconditions.noEnemy;
+
 		foreach(Transform child in enemies.transform){
 
 			float distance = Vector3.Distance (player.transform.position, child.transform.position);
@@ -146,8 +151,25 @@ public class GOAP : MonoBehaviour {
 			return ActionSequence.allPreconditions.enemyClose;
 		return ActionSequence.allPreconditions.enemyFar;
 	}
+	float closestEnemy(){
+		float closest = 100f;
+
+		foreach(Transform child in enemies.transform){
+
+			float distance = Vector3.Distance (player.transform.position, child.transform.position);
+
+			if(distance < closest){
+
+				closest = distance;
+			}
+
+		}
+		return closest;
+	}
 	private ActionSequence.allPreconditions isHealthLow(){
-		if(player.GetComponent<PlayerHealth>().currentHealth < lowHealthLimit){
+		
+		if(player.GetComponent<PlayerHealth>().currentHealth < lowHealthLimit)
+		{
 			return ActionSequence.allPreconditions.lowHealth;
 		}
 		return ActionSequence.allPreconditions.highHealth;
@@ -164,12 +186,6 @@ public class GOAP : MonoBehaviour {
 	private void CalculateNextBestSequence(){
 
 
-		if(enemies.transform.childCount == 0 && player.GetComponent<PlayerHealth>().currentHealth < 100 && healthPickups.transform.childCount > 0){
-			
-			pa.ExecuteSequence (sequenceList.Find (x=>x.sequenceName.Equals ("Gather Health Sequence")));
-			SequenceGoapText.text = "Gather Health Sequence";
-
-		}else{
 			ActionSequence.allPreconditions playerHealth = isHealthLow ();
 			ActionSequence.allPreconditions playerAmmo = isAmmoLow();
 			ActionSequence.allPreconditions enemyCloseness = isEnemyClose ();
@@ -181,11 +197,11 @@ public class GOAP : MonoBehaviour {
 			currentConditions.Add (enemyCloseness);
 
 			List<ActionSequence> suitableSequences = new List<ActionSequence> ();
-			List<int> scores = new List<int> ();
+			List<float> scores = new List<float> ();
 			int i = 0;
 			foreach(var x in sequenceList){
 
-				int score = 0;
+				float score = 0;
 				int satisfiedConditions = 0;
 
 				foreach(var y in currentConditions){
@@ -197,7 +213,7 @@ public class GOAP : MonoBehaviour {
 
 					}else if(x.isConditionValidForBonus (y)){
 
-						score += CalculateConditionScore(y,x)/2;
+						score += CalculateConditionScore(y,x)/2f;
 					}
 
 				}
@@ -215,46 +231,69 @@ public class GOAP : MonoBehaviour {
 			SequenceGoapText.text = resultingSequence.sequenceName;
 
 			pa.ExecuteSequence (resultingSequence);
-		}
+
 
 
 	}
 
 
-	private int CalculateConditionScore(ActionSequence.allPreconditions condition,ActionSequence currentSequence){
+	private float CalculateConditionScore(ActionSequence.allPreconditions condition,ActionSequence currentSequence){
 
 		if(condition.Equals (ActionSequence.allPreconditions.enemyClose)){
 
-			return  (int)meleePriority;
+			return  (2f/(enemyDistanceLimit))*closestEnemy ();
 
 
 		}else if (condition.Equals (ActionSequence.allPreconditions.enemyFar)){
 
-			return (int)shootPriority;
+			if(currentSequence.sequenceName.Equals ("Gather Health Sequence") )
+			{
+				return (closestEnemy () - enemyDistanceLimit) * (1f - ((1f / ph.startingHealth) * ph.currentHealth))/2f;
+			}
+			else if (currentSequence.sequenceName.Equals ("Gather Ammo Sequence") )
+			{
+				return (closestEnemy () - enemyDistanceLimit) * (1f - ((1f / startingAmmo) * ps.currentAmmo)) / 2f;
+			}
+
+			return (closestEnemy () - enemyDistanceLimit)*(1f/enemyDistanceLimit);
 
 		}else if (condition.Equals (ActionSequence.allPreconditions.lowAmmo)){
+			
+			if(currentSequence.sequenceName.Equals ("Melee Kill Sequence"))
+			{
+				return  1f - ((1f / startingAmmo) * ps.currentAmmo);
+			}
 
-			return (int)ammoPriority;
+			return 1f-((1f/startingAmmo)*ps.currentAmmo) + ammoPickups.transform.childCount * 0.25f;
 
 		}else if (condition.Equals (ActionSequence.allPreconditions.highAmmo)){
 
-			return (int)shootPriority;
+			return ((1f/startingAmmo)*ps.currentAmmo);
 
 		}else if (condition.Equals (ActionSequence.allPreconditions.lowHealth)){
+
+			if(currentSequence.sequenceName.Equals ("Ranged Kill Sequence"))
+			{
+				return 1f - ((1f / ph.startingHealth) * ph.currentHealth);
+			}
 			
-			return (int)healthPriority;
+			return 1f-((1f/ph.startingHealth)*ph.currentHealth) + healthPickups.transform.childCount * 0.25f;
 
 		}else if (condition.Equals (ActionSequence.allPreconditions.highHealth)){
-			return (int)healthPriority;
+			return ((1f/ph.startingHealth)*ph.currentHealth);
+		}
+		else if (condition.Equals (ActionSequence.allPreconditions.noEnemy)){
+			return 2f + (healthPickups.transform.childCount + ammoPickups.transform.childCount) * 0.1f;
 		}
 
 
-		return 0;
+		return 0f;
 
 	}
 
-	private int FindHighestScore(List<int> scores){
-		int index = 0,highestScore = 0;
+	private int FindHighestScore(List<float> scores){
+		int index = 0;
+		float highestScore = 0f;
 
 		for(int i = 0;i<scores.Count;i++){
 			if(scores[i] > highestScore){
@@ -262,7 +301,7 @@ public class GOAP : MonoBehaviour {
 				index = i;
 			}
 		}
-
+		print (highestScore);
 		return index;
 	}
 		

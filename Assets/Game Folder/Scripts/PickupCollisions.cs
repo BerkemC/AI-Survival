@@ -12,9 +12,10 @@ public class PickupCollisions : MonoBehaviour {
 				
 				GameObject.FindObjectOfType<PlayerHealth> ().currentHealth =100;
 				GameObject.FindObjectOfType<PlayerAction> ().ShouldCalculateSequence = true;
+				GameObject.FindObjectOfType<PlayerHealth> ().healthSlider.value = 100; 
 			}else if(gameObject.tag.Equals ("Ammo")){
 
-				GameObject.FindObjectOfType<PlayerShooting> ().currentAmmo = 100;
+				GameObject.FindObjectOfType<PlayerShooting> ().currentAmmo = 50;
 				GameObject.FindObjectOfType<PlayerAction> ().ShouldCalculateSequence = true;
 			}
 

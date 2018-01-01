@@ -74,7 +74,11 @@ public class PlayerAction : MonoBehaviour {
 
 		if(isMelee){
 
-			player.transform.LookAt (currentEnemy.transform);
+			if(currentEnemy)
+			{
+				player.transform.LookAt (currentEnemy.transform);
+			}
+
 		}
 
 		if(isEscaping){
@@ -162,14 +166,15 @@ public class PlayerAction : MonoBehaviour {
 			GameObject closestHealthPickup = FindClosestHealth ();
 
 			if(closestHealthPickup){
+				
 				pm.Destination = closestHealthPickup.transform.position;
 				pm.StartMovement ();
 
 				
-			}else{
+			}//else{
 
-				shouldCalculateSequence = true;
-			}
+				ShouldCalculateSequence = true;
+			//}
 
 			isMelee = false;
 			isEscaping = false;
@@ -182,10 +187,10 @@ public class PlayerAction : MonoBehaviour {
 				pm.Destination = closestAmmoPickup.transform.position;
 				pm.StartMovement ();
 
-			}else{
+			}//else{
 				
 				ShouldCalculateSequence = true;
-			}
+			//}
 
 			isMelee = false;
 			isEscaping = false;
@@ -260,7 +265,7 @@ public class PlayerAction : MonoBehaviour {
 				health = child.gameObject;
 			}
 		}
-
+		print ("Health: "+health.transform.position.ToString ());
 		return health;
 	}
 

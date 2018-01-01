@@ -20,6 +20,9 @@ namespace CompleteProject
 
 		public BoxCollider col;
 
+
+		public bool isPathShown;
+
 		private AStar aS;
 		private GreedySearch gs;
 		private PlayerShooting ps;
@@ -57,7 +60,7 @@ namespace CompleteProject
 
 			//AStar script reference
 			gs = GetComponent <GreedySearch> ();
-
+			aS = GetComponent <AStar> ();
 			ps = transform.Find ("GunBarrelEnd").GetComponent<PlayerShooting> ();
         }
 		void Start(){
@@ -67,7 +70,12 @@ namespace CompleteProject
 
 		public void StartMovement ()
 		{
+
+
 			path = gs.GetGreedyBestFirstSearchPath (transform.position, destination);
+			
+		
+
 			ChangeTargetNode ();
 		}
 
@@ -125,10 +133,13 @@ namespace CompleteProject
         void FixedUpdate ()
         {
 			
-		
-			/*while(!path.isEmpty ()){
-				Instantiate (GameObject.FindObjectOfType<BFSMesh> ().spawn,path.Dequeue (),Quaternion.identity);
-			}*/
+			if(isPathShown)
+			{
+				while(!path.isEmpty ()){
+					Instantiate (GameObject.FindObjectOfType<BFSMesh> ().spawn,path.Dequeue (),Quaternion.identity);
+				}
+			}
+
 
 			if(destination != null && path.isEmpty ()){
 				StartMovement ();

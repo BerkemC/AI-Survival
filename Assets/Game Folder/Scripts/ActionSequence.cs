@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ActionSequence : MonoBehaviour {
 
-	public enum allPreconditions{highHealth,lowHealth,highAmmo,lowAmmo,enemyClose,enemyFar};
+	public enum allPreconditions{highHealth,lowHealth,highAmmo,lowAmmo,enemyClose,enemyFar,noEnemy};
 	public enum allEffects{moreAmmo,moreHealth,meleeStrike,rangedStrike,escape,lowerAmmo,lowerHealth};
 
 	public string sequenceName;
