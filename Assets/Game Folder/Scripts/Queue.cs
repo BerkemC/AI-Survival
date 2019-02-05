@@ -8,26 +8,25 @@ public class Queue : MonoBehaviour {
 	public int head = 0;
 	public int tail = -1;
 
-	public Queue(){
+	public Queue()
+    {
 		queue = new List<Vector3> ();
 	}
 
-	public void Enqueue(Vector3 node){
+	public void Enqueue(Vector3 node)
+    {
 		queue.Add (node);
 		tail++;
 	}
 
-	public Vector3 Dequeue(){
-
-
+	public Vector3 Dequeue()
+    {
 		Vector3 temp = queue [head++];
-		
 		return temp;
-
 	}
 
-	public bool isEmpty(){
-
+	public bool IsEmpty()
+    {
 		return (tail<head);
 	}
 

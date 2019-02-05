@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 public class PlayerAction : MonoBehaviour {
 
-	private bool shouldCalculateSequence;
+    #region Member Variables & References
+
+    private bool shouldCalculateSequence;
 	private GameObject player;
 	private GameObject enemies;
 	private GameObject healthPickups;
@@ -23,208 +25,241 @@ public class PlayerAction : MonoBehaviour {
 
 
 	public Text enemyNumberText;
+    #endregion
+    #region Setters and Getters
 
-	public bool IsEscaping {
-		get {
+    public bool IsEscaping
+    {
+		get
+        {
 			return isEscaping;
 		}
-		set {
+		set
+        {
 			isEscaping = value;
 		}
 	}
 
-	public bool ShouldCalculateSequence {
-		get {
+	public bool ShouldCalculateSequence
+    {
+		get
+        {
 			return shouldCalculateSequence;
 		}
-		set {
+		set
+        {
 			shouldCalculateSequence = value;
 		}
 	}
 
-	void Awake(){
-		player = GameObject.FindGameObjectWithTag ("Player");
-		enemies = GameObject.Find ("Enemies");
-		healthPickups = GameObject.Find ("HealthPickups");
-		ammoPickups = GameObject.Find ("AmmoPickups");
-		bat = player.transform.Find ("Bat").gameObject;
+    #endregion
 
-		ph = player.GetComponent<PlayerHealth> ();
-		pm = player.GetComponent<CompleteProject.PlayerMovement> ();
-		ps = player.transform.Find ("GunBarrelEnd").gameObject.GetComponent<PlayerShooting> ();
+    void Awake()
+    {
+        InitializeVariablesAndReferences();
+    }
 
+    private void InitializeVariablesAndReferences()
+    {
+        player = GameObject.FindGameObjectWithTag("Player");
+        enemies = GameObject.Find("Enemies");
+        healthPickups = GameObject.Find("HealthPickups");
+        ammoPickups = GameObject.Find("AmmoPickups");
+        bat = player.transform.Find("Bat").gameObject;
 
+        ph = player.GetComponent<PlayerHealth>();
+        pm = player.GetComponent<CompleteProject.PlayerMovement>();
+        ps = player.transform.Find("GunBarrelEnd").gameObject.GetComponent<PlayerShooting>();
 
-		ShouldCalculateSequence = true;
-	}
-
-	// Use this for initialization
-	void Start () {
-		
-	}
+        ShouldCalculateSequence = true;
+    }
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
+        ApplyPlayerActions();
 
+        enemyNumberText.text = "Enemies: " + enemies.transform.childCount.ToString();
+    }
 
-		if(isShooting && currentEnemy != null){
-			
-			player.transform.LookAt (currentEnemy.transform);
-		}
+    private void ApplyPlayerActions()
+    {
+        if (isShooting && currentEnemy != null)
+        {
 
-		if(isMelee){
+            player.transform.LookAt(currentEnemy.transform);
+        }
 
-			if(currentEnemy)
-			{
-				player.transform.LookAt (currentEnemy.transform);
-			}
+        if (isMelee && currentEnemy)
+        {
+            player.transform.LookAt(currentEnemy.transform);
+        }
 
-		}
+        if (isEscaping)
+        {
 
-		if(isEscaping){
+            GameObject closestEnemy = FindClosestEnemy();
 
-			GameObject closestEnemy = FindClosestEnemy ();
+            if (closestEnemy && Vector3.Distance(closestEnemy.transform.position, player.transform.position) > GameObject.FindObjectOfType<GOAP>().enemyDistanceLimit)
+            {
+                GameObject closestAmmo = FindClosestAmmo();
+                GameObject closestHealth = FindClosestHealth();
 
-			if (closestEnemy && Vector3.Distance (closestEnemy.transform.position, player.transform.position) > GameObject.FindObjectOfType<GOAP> ().enemyDistanceLimit) {
-				GameObject closestAmmo = FindClosestAmmo ();
-				GameObject closestHealth = FindClosestHealth ();
+                if (closestAmmo && closestHealth)
+                {
 
-				if (closestAmmo && closestHealth) {
+                    if (Vector3.Distance(player.transform.position, closestAmmo.transform.position) < Vector3.Distance(player.transform.position, closestAmmo.transform.position))
+                    {
 
-					if (Vector3.Distance (player.transform.position, closestAmmo.transform.position) < Vector3.Distance (player.transform.position, closestAmmo.transform.position)) {
+                        pm.Destination = closestAmmo.transform.position;
+                    }
+                    else
+                    {
+                        pm.Destination = closestHealth.transform.position;
+                    }
+                }
+                else if (closestAmmo && !closestHealth)
+                {
+                    pm.Destination = closestAmmo.transform.position;
+                }
+                else if (!closestAmmo && closestHealth)
+                {
 
-						pm.Destination = closestAmmo.transform.position;
-						pm.StartMovement ();
+                    pm.Destination = closestHealth.transform.position;
+                }
+                else
+                {
+                    Vector3 randomLoc = new Vector3(Random.Range(-65f, 15f), 1f, Random.Range(-20f, 15f));
+                    pm.Destination = randomLoc;
+                }
 
-					} else {
-						pm.Destination = closestHealth.transform.position;
-						pm.StartMovement ();
-					}
-				} else if (closestAmmo && !closestHealth) {
+                pm.StartMovement();
+            }
 
-					pm.Destination = closestAmmo.transform.position;
-					pm.StartMovement ();
-				} else if (!closestAmmo && closestHealth) {
+        }
+    }
 
-					pm.Destination = closestHealth.transform.position;
-					pm.StartMovement ();
-				} else {
-
-					Vector3 randomLoc = new Vector3 (Random.Range (-65f, 15f), 1f, Random.Range (-20f, 15f));
-					pm.Destination = randomLoc;
-					pm.StartMovement ();
-				}
-			}
-
-		}
-
-
-		enemyNumberText.text = "Enemies: " + enemies.transform.childCount.ToString ();
-	}
-
-
-	public void ExecuteSequence(ActionSequence sequence){
+    public void ExecuteSequence(ActionSequence sequence)
+    {
 
 		ResetForNewSequence (sequence);
 
-		if(sequence.sequenceName.Equals ("Melee Kill Sequence")){
+		if(sequence.sequenceName.Equals ("Melee Kill Sequence"))
+        {
+            ExecuteMeleeSequence();
+        }
+        else if(sequence.sequenceName.Equals ("Ranged Kill Sequence"))
+        {
+            ExecuteRangedSequence();
+        }
+        else if(sequence.sequenceName.Equals ("Gather Health Sequence"))
+        {
+            ExecuteHealthGatheringSequence();
 
-			GameObject closestEnemy = FindClosestEnemy ();
+        }
+        else if(sequence.sequenceName.Equals ("Gather Ammo Sequence"))
+        {
+            ExecuteAmmoGatheringSequence();
+        }
+        else if(sequence.sequenceName.Equals ("Escape Sequence"))
+        {
+            ExecuteEscapeSequence();
+        }
 
-			if(closestEnemy){
-				isMelee = true;
-				pm.Destination = closestEnemy.transform.position;
-				pm.StartMovement ();
-				currentEnemy = closestEnemy;
+        ShouldCalculateSequence = true;
+    }
 
-				bat.SetActive (true);
-			}
-			else{
+    private void ExecuteEscapeSequence()
+    {
+        if (pm.Path.IsEmpty())
+        {
+            Vector3 randomLocation = new Vector3(Random.Range(-65f, 15f), 1f, Random.Range(-20f, 15f));
+            pm.Destination = randomLocation;
+            pm.StartMovement();
 
-				shouldCalculateSequence = true;
-			}
-			ShouldCalculateSequence = true;
+        }
 
-			isEscaping = false;
-		}else if(sequence.sequenceName.Equals ("Ranged Kill Sequence")){
-			
-			GameObject closestEnemy = FindClosestEnemy ();
+        isMelee = false;
+        isEscaping = true;
+    }
 
-			if(closestEnemy){
-				pm.Destination = closestEnemy.transform.position;
-				pm.StartMovement ();
-				ps.target = closestEnemy;
-				currentEnemy = closestEnemy;
-				isShooting = true;
-			}
+    private void ExecuteAmmoGatheringSequence()
+    {
+        GameObject closestAmmoPickup = FindClosestAmmo();
 
-			isMelee = false;
-			shouldCalculateSequence = true;
-			isEscaping = false;
-		}else if(sequence.sequenceName.Equals ("Gather Health Sequence")){
-			
-			GameObject closestHealthPickup = FindClosestHealth ();
+        if (closestAmmoPickup)
+        {
+            pm.Destination = closestAmmoPickup.transform.position;
+            pm.StartMovement();
 
-			if(closestHealthPickup){
-				
-				pm.Destination = closestHealthPickup.transform.position;
-				pm.StartMovement ();
-
-				
-			}//else{
-
-				ShouldCalculateSequence = true;
-			//}
-
-			isMelee = false;
-			isEscaping = false;
-
-		}else if(sequence.sequenceName.Equals ("Gather Ammo Sequence")){
-
-			GameObject closestAmmoPickup = FindClosestAmmo ();
-
-			if(closestAmmoPickup){
-				pm.Destination = closestAmmoPickup.transform.position;
-				pm.StartMovement ();
-
-			}//else{
-				
-				ShouldCalculateSequence = true;
-			//}
-
-			isMelee = false;
-			isEscaping = false;
-		}else if(sequence.sequenceName.Equals ("Escape Sequence")){
-
-			if(pm.Path.isEmpty ()){
-				Vector3 randomLocation = new Vector3 (Random.Range (-65f, 15f), 1f, Random.Range (-20f, 15f));
-				pm.Destination = randomLocation;
-				pm.StartMovement ();
-
-			}
-			
-			isMelee = false;
-			isEscaping = true;
-			shouldCalculateSequence = true;
-		}
+        }
 
 
 
-	}
+        isMelee = false;
+        isEscaping = false;
+    }
+
+    private void ExecuteHealthGatheringSequence()
+    {
+        GameObject closestHealthPickup = FindClosestHealth();
+
+        if (closestHealthPickup)
+        {
+            pm.Destination = closestHealthPickup.transform.position;
+            pm.StartMovement();
+        }
+
+        
+        isMelee = false;
+        isEscaping = false;
+    }
+
+    private void ExecuteRangedSequence()
+    {
+        GameObject closestEnemy = FindClosestEnemy();
+
+        if (closestEnemy)
+        {
+            pm.Destination = closestEnemy.transform.position;
+            pm.StartMovement();
+            ps.target = closestEnemy;
+            currentEnemy = closestEnemy;
+            isShooting = true;
+        }
+
+        isMelee = false;
+        isEscaping = false;
+    }
+
+    private void ExecuteMeleeSequence()
+    {
+        GameObject closestEnemy = FindClosestEnemy();
+
+        if (closestEnemy)
+        {
+            isMelee = true;
+            pm.Destination = closestEnemy.transform.position;
+            pm.StartMovement();
+            currentEnemy = closestEnemy;
+
+            bat.SetActive(true);
+        }
+       
+        isEscaping = false;
+    }
 
 
-
-	void ResetForNewSequence (ActionSequence sequence)
+    void ResetForNewSequence (ActionSequence sequence)
 	{
-		shouldCalculateSequence = false;
+		ShouldCalculateSequence = false;
 		currentSequence = sequence;
-		if(!isEscaping) pm.Destination = player.transform.position;
+        if (!isEscaping) { pm.Destination = player.transform.position; }
 		ps.target = null;
 	}
 
-	public void ResetForDeadTarget(){
-		
-
+	public void ResetForDeadTarget()
+    {
 		ps.target = null;
 		currentEnemy = null; 
 		ShouldCalculateSequence = true;
@@ -234,14 +269,16 @@ public class PlayerAction : MonoBehaviour {
 
 
 
-	private GameObject FindClosestEnemy(){
+	private GameObject FindClosestEnemy()
+    {
 
 		float distance = 100f;
 		GameObject enemy = null;
 
 		foreach(Transform child in enemies.transform){
 			
-			if(Vector3.Distance(player.transform.position,child.position) < distance){
+			if(Vector3.Distance(player.transform.position,child.position) < distance)
+            {
 				
 				distance = Vector3.Distance (player.transform.position, child.position);
 				enemy = child.gameObject;
@@ -252,31 +289,37 @@ public class PlayerAction : MonoBehaviour {
 
 	}
 
-	private GameObject FindClosestHealth(){
+	private GameObject FindClosestHealth()
+    {
 
 		float distance = 100f;
 		GameObject health = null;
 
-		foreach(Transform child in healthPickups.transform){
+		foreach(Transform child in healthPickups.transform)
+        {
 
-			if(Vector3.Distance(player.transform.position,child.position) < distance){
+			if(Vector3.Distance(player.transform.position,child.position) < distance)
+            {
 
 				distance = Vector3.Distance (player.transform.position, child.position);
 				health = child.gameObject;
 			}
 		}
-		print ("Health: "+health.transform.position.ToString ());
+		
 		return health;
 	}
 
-	private GameObject FindClosestAmmo(){
+	private GameObject FindClosestAmmo()
+    {
 
 		float distance = 100f;
 		GameObject ammo = null;
 
-		foreach(Transform child in ammoPickups.transform){
+		foreach(Transform child in ammoPickups.transform)
+        {
 
-			if(Vector3.Distance(player.transform.position,child.position) < distance){
+			if(Vector3.Distance(player.transform.position,child.position) < distance)
+            {
 
 				distance = Vector3.Distance (player.transform.position, child.position);
 				ammo = child.gameObject;

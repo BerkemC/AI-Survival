@@ -16,14 +16,11 @@ public class AStar : MonoBehaviour {
 		BFSCredentials = GameObject.FindObjectOfType<BFSMesh> ();
 
 		//Get the matrix created by bfs
-		if(BFSCredentials.isGenerated){
-			
+		if(BFSCredentials.isGenerated)
+        {
 			map = BFSCredentials.matrix;
-		}else{
-			print ("Not generated");
 		}
-
-
+       
 	}
 
 	/// <summary>
@@ -88,30 +85,27 @@ public class AStar : MonoBehaviour {
 
 
 
-		while(!frontier.isEmpty ())
+		while(!frontier.IsEmpty ())
 		{
 			
 
 			//Get the current location
-			PriorityQueue.LocationNode currentN = frontier.Deq ();
+			PriorityQueue.LocationNode currentN = frontier.DequeueNode();
 			Vector3 currentLocation = currentN.location;
 
 			if (currentLocation.Equals (targetPosition)) //Goal Achieved
 			{
 				res.Enqueue (currentN);
 				ResultingPath = FillResultingQueue (res);
-				//ResultingPath.Enqueue (currentLocation);
-
+				ResultingPath.Enqueue (currentLocation);
 
 				return ResultingPath;
-
 			}
 			else
 			{
 				//For each valid neighbor
-				GetValidNeighbors (currentLocation).queue.ForEach (delegate(Vector3 obj) {
-				
-
+				GetValidNeighbors (currentLocation).queue.ForEach (delegate(Vector3 obj) 
+                {
 
 					int neighborCost = costSoFar[LastIndex -1]+1;  //As all the steps cost 1 
 
@@ -164,7 +158,7 @@ public class AStar : MonoBehaviour {
 	{
 		Queue temp = new Queue ();
 		List<Vector3> result = new List<Vector3> ();
-		bool isStepCalculated = false;
+		
 		PriorityQueue.LocationNode tempNode = new PriorityQueue.LocationNode();
 		int index = res.priorityQueue.Count - 1;
 
@@ -218,11 +212,15 @@ public class AStar : MonoBehaviour {
 		ConvertToIndex (out z,out x,currentPosition);
 
 
-		for(int i = -1; i < 2 ;i++){
-			for(int j = -1 ; j < 2 ; j++){
+		for(int i = -1; i < 2 ;i++)
+        {
+			for(int j = -1 ; j < 2 ; j++)
+            {
 
-				if((x+j) < 98 && (x+j) > 0 && (z+ i) < 49 && (z+i) > 0){//Within the map boundaries
-					if(!map [(z + i), (x + j)].Equals (Vector3.zero) && !visitedList[(z+i),(x+j)]){ //If the node is valid
+				if((x+j) < 98 && (x+j) > 0 && (z+ i) < 49 && (z+i) > 0)
+                {//Within the map boundaries
+					if(!map [(z + i), (x + j)].Equals (Vector3.zero) && !visitedList[(z+i),(x+j)])
+                    { //If the node is valid
 						result.Enqueue (map [(z + i), (x + j)]);
 						visitedList [(z + i), (x + j)] = true;
 					}
@@ -230,7 +228,7 @@ public class AStar : MonoBehaviour {
 			}
 		}
 
-		//print (result.queue.Count);
+		
 		return result;
 	}
 
@@ -240,7 +238,8 @@ public class AStar : MonoBehaviour {
 	/// <param name="zAx">Z ax.</param>
 	/// <param name="xAx">X ax.</param>
 	/// <param name="location">Location.</param>
-	private void ConvertToIndex(out int zAx, out int xAx, Vector3 location){
+	private void ConvertToIndex(out int zAx, out int xAx, Vector3 location)
+    {
 		xAx = (int)(location.x + 73.5f);
 		zAx = (int)(location.z + 24.5f);
 	}

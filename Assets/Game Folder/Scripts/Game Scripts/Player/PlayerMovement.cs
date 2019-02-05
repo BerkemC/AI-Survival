@@ -82,7 +82,7 @@ namespace CompleteProject
 		public void ChangeTargetNode ()
 		{
 			
-			if (!path.isEmpty ()) {
+			if (!path.IsEmpty ()) {
 				
 				nextLocation = path.Dequeue ();
 				col.transform.position = nextLocation;
@@ -108,7 +108,7 @@ namespace CompleteProject
 
 		void CalculateNorm ()
 		{
-			if (!path.isEmpty ()) {
+			if (!path.IsEmpty ()) {
 				if (nextLocation.x > transform.position.x)
 					norm.x = 1f;
 				else
@@ -135,13 +135,13 @@ namespace CompleteProject
 			
 			if(isPathShown)
 			{
-				while(!path.isEmpty ()){
+				while(!path.IsEmpty ()){
 					Instantiate (GameObject.FindObjectOfType<BFSMesh> ().spawn,path.Dequeue (),Quaternion.identity);
 				}
 			}
 
 
-			if(destination != null && path.isEmpty ()){
+			if(destination != null && path.IsEmpty ()){
 				StartMovement ();
 			}
 

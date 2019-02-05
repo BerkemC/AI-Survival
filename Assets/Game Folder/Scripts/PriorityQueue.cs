@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class PriorityQueue : MonoBehaviour {
 
-	public struct LocationNode{
+	public struct LocationNode
+    {
 		public Vector3 location;
 		public float priority;
 	};
@@ -12,37 +13,45 @@ public class PriorityQueue : MonoBehaviour {
 	public List<LocationNode> priorityQueue;
 
 
-	public PriorityQueue(){
+	public PriorityQueue()
+    {
 		
 		priorityQueue = new List<LocationNode> ();
 	}
 
-	public void Enqueue(LocationNode node){
-		
-		for(int i = 0; i < priorityQueue.Count ; i++){
+	public void Enqueue(LocationNode node)
+    {	
+		for(int i = 0; i < priorityQueue.Count ; i++)
+        {
 			
-			if(node.priority < priorityQueue[i].priority){
-
+			if(node.priority < priorityQueue[i].priority)
+            {
 				priorityQueue.Insert (i,node);
 				return;
 			}
 		}
-
-
 		priorityQueue.Add (node);
 
 	}
 
-	public Vector3 Dequeue(){
+    public LocationNode DequeueNode()
+    {
+        LocationNode temp = priorityQueue[0];
+        priorityQueue.RemoveAt(0);
 
+        return temp;
+    }
+
+    public Vector3 Dequeue()
+    {
 		Vector3 temp = priorityQueue [0].location;
 		priorityQueue.RemoveAt (0);
 
 		return temp;
 	}
 
-	public bool isEmpty(){
-
+	public bool IsEmpty()
+    {
 		return (priorityQueue.Count == 0);
 	}
 }

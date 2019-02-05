@@ -4,11 +4,17 @@ using UnityEngine;
 
 public class BFSMesh : MonoBehaviour {
 
-	public ColliderManagement collider;
-	public int xOffset;
-	public int zOffset;
-	public int xAxis;
-	public int zAxis;
+    #region Member Variables & References
+    [SerializeField]
+	private ColliderManagement collider;
+    [SerializeField]
+    private int xOffset;
+    [SerializeField]
+    private int zOffset;
+    [SerializeField]
+    private int xAxis;
+    [SerializeField]
+    private int zAxis;
 
 
 	public Vector3[,] matrix ;
@@ -21,28 +27,30 @@ public class BFSMesh : MonoBehaviour {
 
 
 	public bool isGenerated = false;
-	// Use this for initialization
+    #endregion
 
-	void Awake(){
+    void Awake()
+    {
 		visitedMatrix = new bool[zAxis+zOffset,xAxis+xOffset];
 		matrix = new Vector3[zAxis+zOffset,xAxis+xOffset];
 
-
 		DeleteObstaclesFromMatrix ();
 
-
 		BFSMeshGeneration ();
-		isGenerated = true;
+		
 
-		if(isShown){
+		if(isShown)
+        {
 			ShowGrid ();
 		}
 	}
 
 	void ShowGrid ()
 	{
-		for (int i = 0; i < zAxis; i++) {
-			for (int j = 0; j < xAxis; j++) {
+		for (int i = 0; i < zAxis; i++)
+        {
+			for (int j = 0; j < xAxis; j++)
+            {
 				Instantiate (spawn, matrix [i, j], Quaternion.identity);
 			}
 		}
@@ -50,34 +58,38 @@ public class BFSMesh : MonoBehaviour {
 
 	void DeleteObstaclesFromMatrix ()
 	{
-		foreach (Transform child in obstacles1.transform) {
-			MarkWithRange (child);
-			foreach (Transform child2 in child) {
-				MarkWithRange (child2);
+		foreach (Transform child in obstacles1.transform)
+        {
+			MarkObstacleAsVisited (child);
+			foreach (Transform child2 in child)
+            {
+				MarkObstacleAsVisited (child2);
 			}
 		}
-		foreach (Transform child in obstacles2.transform) {
-			MarkWithRange (child);
-			foreach (Transform child2 in child) {
-				MarkWithRange (child2);
+		foreach (Transform child in obstacles2.transform)
+        {
+			MarkObstacleAsVisited (child);
+			foreach (Transform child2 in child)
+            {
+				MarkObstacleAsVisited (child2);
 			}
 		}
 	}
 
-	private void ConvertToIndex(out int zAx, out int xAx, Vector3 location){
+	private void ConvertToIndex(out int zAx, out int xAx, Vector3 location)
+    {
 		xAx = (int)(location.x + 73.5f);
 		zAx = (int)(location.z + 24.5f);
 	}
-	private void MarkWithRange(Transform child){
+	private void MarkObstacleAsVisited(Transform child)
+    {
 		int zc, xc;
-
 		ConvertToIndex (out zc,out xc,child.position);
 		visitedMatrix [zc, xc] = true;
 
 	}
-	private void BFSMeshGeneration(){
-		
-
+	private void BFSMeshGeneration()
+    {
 
 		Vector3 startPoint = GenerateStartPoint ();
 		int z, x;
@@ -94,7 +106,8 @@ public class BFSMesh : MonoBehaviour {
 		frontier.Enqueue (startPoint);
 
 
-		while(!frontier.isEmpty ()){
+		while(!frontier.IsEmpty ())
+        {
 			
 			Vector3 current = frontier.Dequeue ();
 
@@ -102,13 +115,13 @@ public class BFSMesh : MonoBehaviour {
 			List<Vector3> neighbors = collider.GetNeighbors (current);
 
 
-			neighbors.ForEach (delegate(Vector3 obj) {
-
-					
+			neighbors.ForEach (delegate(Vector3 obj) 
+            {
+	
 				ConvertToIndex (out z,out  x, obj);
 
-
-				if(!visitedMatrix[z,x]){
+				if(!visitedMatrix[z,x])
+                {
 					
 					matrix[z,x] = obj;
 					frontier.Enqueue (obj);
@@ -118,11 +131,13 @@ public class BFSMesh : MonoBehaviour {
 			});
 
 		}
-	}
+
+        isGenerated = true;
+    }
 
 
-	private Vector3 GenerateStartPoint(){
-
+	private Vector3 GenerateStartPoint()
+    {
 		return collider.transform.position;
 	}
 }
